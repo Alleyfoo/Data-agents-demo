@@ -1,0 +1,82 @@
+{
+  "run_id": "sample-mini",
+  "artifact_key": "artifacts/sample-mini/header_spec.json",
+  "selected_candidate_id": "row_1",
+  "candidates": [
+    {
+      "candidate_id": "row_0",
+      "header_rows": [
+        0
+      ],
+      "merge_strategy": "single_row",
+      "normalized_headers": [
+        "sales_report_q1",
+        "unnamed_1",
+        "unnamed_2",
+        "unnamed_3"
+      ],
+      "confidence": 0.25,
+      "evidence_keys": [
+        "artifacts/sample-mini/evidence_packet.json"
+      ]
+    },
+    {
+      "candidate_id": "row_1",
+      "header_rows": [
+        1
+      ],
+      "merge_strategy": "single_row",
+      "normalized_headers": [
+        "product_code",
+        "qty",
+        "amount",
+        "note"
+      ],
+      "confidence": 0.95,
+      "evidence_keys": [
+        "artifacts/sample-mini/evidence_packet.json"
+      ]
+    },
+    {
+      "candidate_id": "row_2",
+      "header_rows": [
+        2
+      ],
+      "merge_strategy": "single_row",
+      "normalized_headers": [
+        "x100",
+        "3",
+        "19.95",
+        "first_order"
+      ],
+      "confidence": 0.8,
+      "evidence_keys": [
+        "artifacts/sample-mini/evidence_packet.json"
+      ]
+    },
+    {
+      "candidate_id": "row_3",
+      "header_rows": [
+        3
+      ],
+      "merge_strategy": "single_row",
+      "normalized_headers": [
+        "y200",
+        "1",
+        "5.00",
+        "second_order"
+      ],
+      "confidence": 0.8,
+      "evidence_keys": [
+        "artifacts/sample-mini/evidence_packet.json"
+      ]
+    }
+  ],
+  "needs_human_confirmation": false,
+  "alternatives": [
+    "row_0",
+    "row_2",
+    "row_3"
+  ],
+  "refusal_reason": null
+}

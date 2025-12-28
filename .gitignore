@@ -208,6 +208,7 @@ __marimo__/
 
 # Local data samples (do not commit)
 data/samples/
+!data/samples/sample_mini.csv
 
 # Local artifacts (do not commit)
 artifacts/

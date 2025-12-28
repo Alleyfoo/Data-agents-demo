@@ -1,0 +1,34 @@
+{
+  "run_id": "sample-mini",
+  "artifact_key": "artifacts/sample-mini/evidence_packet.json",
+  "preview_rows": [
+    [
+      "Sales report Q1",
+      "",
+      "",
+      ""
+    ],
+    [
+      "product_code",
+      "qty",
+      "amount",
+      "note"
+    ],
+    [
+      "X100",
+      "3",
+      "19.95",
+      "first order"
+    ],
+    [
+      "Y200",
+      "1",
+      "5.00",
+      "second order"
+    ]
+  ],
+  "notes": "synthetic preview rows",
+  "file_path": "C:\\Users\\pertt\\Data-agents-demo\\data\\samples\\sample_mini.csv",
+  "file_hash": "96f109d12c793184bcfcc532d17db29d21c7c30c79730f3e0609a69a2945f37f",
+  "structural_hash": "c65e7e1ae413919849057f60e1def035303442efa5e288fb02a28c82900d34bd"
+}

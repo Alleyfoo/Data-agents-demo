@@ -1,43 +1,57 @@
-# Agent Base Repo (Starter Kit)
+# Data Agents Demo
 
-This repository is a minimal, reusable “agent kit” for planning and running agentic workflows without copying any project-specific application code. It is designed to be understandable by a skeptical engineer, portable to any tooling stack, and easy to extend later.
+Agentic Excel/CSV cleaner: finds the right header row, normalizes fields, and writes a clean schema plus CSV output. Ships with a CLI, a TUI, and Streamlit UIs. GitHub home: https://github.com/Alleyfoo/Data-agents-demo
 
-## Canonical Source of Truth
+## Quickstart (CLI)
 
-All canonical content lives under `agent-base/`. The `.github/` directory mirrors agent and skill definitions for VS Code/Copilot users.
+Prereqs: Python 3.11+, git, and pip. Commands assume PowerShell from the repo root.
 
-To sync mirrors:
+```powershell
+python -m venv .venv
+.\\.venv\\Scripts\\Activate.ps1
+python -m pip install -r demos/requirements-demo.txt
+
+# Try the included sample
+python data_agents_cli.py run --input data/samples/sample_mini.csv --run-id demo --interactive
+
+# Or point to your own file (prompts if header confirmation is needed)
+python data_agents_cli.py run --input path\\to\\your.xlsx --run-id demo --interactive
+
+# Or the two-step flow
+python data_agents_cli.py run --input path\\to\\your.xlsx --run-id demo
+python data_agents_cli.py confirm --run-id demo --choice row_1
+python data_agents_cli.py resume --run-id demo
 ```
-python scripts/sync_github_agents.py
-```
 
-## What’s Inside
+Outputs land in `artifacts/<run-id>/`, including `clean.csv`, `schema_spec.json`, and the shadow log. Use your own CSV/XLSX; drop it anywhere and point `--input` to the file. A small sample like `data/samples/sample_messy.xlsx` works if you already have it locally.
 
-- **agent-base/**: reusable, tool-agnostic agent roles, skills, templates, contracts, examples
-- **.github/**: optional VS Code/Copilot-friendly agent definitions and skills
+## UI options
 
-## First Workflow
+- TUI: `python demos/tui_app.py --input path\\to\\your.xlsx --interactive`
+- Streamlit demo: `streamlit run demos/streamlit_app.py`
+- Streamlit mapping studio: `streamlit run demos/streamlit_mapping_studio.py`
+- Convenience launchers (Windows): `demos/run_tui_demo.bat`, `demos/run_streamlit_demo.bat`
 
-1. Review `agent-base/docs/philosophy.md` and `agent-base/docs/agent-roles.md`.
-2. Start a plan using `agent-base/templates/agent-plan.md`.
-3. Run the loop: **Plan → Delegate → Review → Merge**.
-4. Capture decisions in the artifact contract and shadow log.
+## What this demo does
 
-## Reusable VS Code Agents
+- Detects likely header rows and asks for confirmation when ambiguous.
+- Cleans and normalizes column names and data values.
+- Writes reproducible artifacts (schema, evidence packet, shadow log, clean CSV) under `artifacts/`.
+- Designed to plug in alternative UIs without changing the core runtime in `runtime/`.
 
-If you use VS Code or Copilot, see `.github/agents/` and `.github/skills/` for short, strict agent definitions and playbooks. Intended workflow:
+## Repo layout
 
-**Plan → Delegate → Review → Merge**
+- `data_agents_cli.py` / `data-agents.ps1` — CLI entrypoint and PowerShell wrapper.
+- `runtime/` — header detection, janitor, and orchestration logic.
+- `demos/` — TUI and Streamlit front-ends plus demo requirements.
+- `tests/` — basic flow coverage.
+- `agent-base/` and `.github/` — shared agent definitions and templates.
 
-The repo also works without these tools—everything is available as plain Markdown under `agent-base/`.
+## Example output
 
-## Codex Prompt Header
+- Clean CSV from the bundled sample: `docs/example-output/sample_mini_clean.csv`
 
-When you run GPT-5.2-Codex, start tasks with this header:
+## Links
 
-Repo orientation:
-- This repo is tool-agnostic. VS Code/Copilot is optional.
-- Canonical: agent-base/*
-- Mirrors for Copilot: .github/agents and .github/skills
-- Never edit mirrors directly; edit canonical and run python scripts/sync_github_agents.py
-- Focus: role specs, playbooks, contracts, templates (not a full pipeline)
+- Profile: https://github.com/Alleyfoo
+- Related: https://github.com/Alleyfoo/Data-tool-demo

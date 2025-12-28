@@ -1,0 +1,40 @@
+{
+  "run_id": "sample-mini",
+  "artifact_key": "artifacts/sample-mini/schema_spec.json",
+  "schema_layer": "core",
+  "schema_spec": {
+    "fields": [
+      {
+        "source": "product_code",
+        "canonical": "product_code",
+        "dtype": "string",
+        "required": true
+      },
+      {
+        "source": "qty",
+        "canonical": "qty",
+        "dtype": "number",
+        "required": true
+      },
+      {
+        "source": "amount",
+        "canonical": "amount",
+        "dtype": "number",
+        "required": true
+      },
+      {
+        "source": "note",
+        "canonical": "note",
+        "dtype": "string",
+        "required": true
+      }
+    ],
+    "unmapped_columns": []
+  },
+  "confidence": 0.7,
+  "alternatives": [],
+  "evidence_keys": [
+    "artifacts/sample-mini/header_spec.json"
+  ],
+  "refusal_reason": null
+}
