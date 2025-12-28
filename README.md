@@ -62,6 +62,14 @@ Why this is more than “just read Excel”:
 - UIs are thin shells; the orchestration and janitor live in `runtime/`, so you can swap interfaces without touching the core.
 - Artifacts are structured (JSON + CSV) for downstream pipelines, not screenshots or ad-hoc prints.
 
+## Under the hood (where to look)
+
+- Orchestration: `runtime/excel_flow.py` — `puhemies_run_from_file` (initial detection), `puhemies_continue` (after confirmation), `_write_json` and `_append_shadow` (artifact + audit log writers).
+- Header detection: `_normalize_header`, `_header_looks_like_data`, and candidate generation inside `excel_flow.py`; scores candidates, marks ambiguous cases, and serializes to `header_spec.json`.
+- Human-in-the-loop: `data_agents_cli.py` (CLI), `demos/tui_app.py` (text UI), `demos/streamlit_app.py` & `demos/streamlit_mapping_studio.py` (web UI). All simply surface the same `header_spec.json` question and call `write_human_confirmation`.
+- Data cleaning: `runtime/data_janitor.py` — `clean_value`, `clean_series` for stripping whitespace, normalizing numeric-ish strings, and handling nulls before writing `clean.csv`.
+- Schema + evidence: `schema_spec.json` and `evidence_packet.json` come from the run; they capture normalized headers, confidence scores, and decisions so you can replay/debug.
+
 ## Agent philosophy (why it works this way)
 
 - Decisions are explicit: the orchestrator asks for human confirmation when header confidence is low, then records that choice in artifacts so runs are reproducible.
