@@ -1,10 +1,24 @@
 # Data Agents Demo
 
-Agentic Excel/CSV cleaner: finds the right header row, normalizes fields, and writes a clean schema plus CSV output. Ships with a CLI, a TUI, and Streamlit UIs. GitHub home: https://github.com/Alleyfoo/Data-agents-demo
+A small AI-powered tool that takes a messy Excel or CSV file (the kind of spreadsheet you actually get in real life — with notes above the table, weird column names, and inconsistent values) and turns it into a clean, predictable file that other software can use without complaint.
 
-## Quickstart (CLI)
+GitHub home: https://github.com/Alleyfoo/Data-agents-demo
 
-Prereqs: Python 3.11+, git, and pip. Commands assume PowerShell from the repo root.
+## Why this project matters
+
+Most "real" spreadsheets aren't clean. The headers might be on row 4 instead of row 1. Numbers are stored as text. Some cells have stray spaces. A normal data pipeline (an automated process that moves and transforms data) chokes on all of this.
+
+This project shows a more thoughtful approach:
+
+- **It asks before it guesses.** When the tool isn't sure which row holds the column titles, it stops and asks the user instead of silently picking wrong.
+- **Every decision is recorded.** You can replay any run later and see exactly why it did what it did — useful for audits, debugging, or convincing a stakeholder.
+- **The brains and the buttons are separate.** The cleanup logic lives in one place; the user interfaces (command line, terminal app, web app) are simple wrappers around it. You can swap or add interfaces without rewriting the core.
+
+In short: it treats data cleanup like a careful conversation, not a black box.
+
+## Quickstart (command line)
+
+You'll need Python 3.11 or newer (a programming language), `git`, and `pip` (Python's package installer). The commands below assume you're using PowerShell on Windows, in the project folder.
 
 ```powershell
 python -m venv .venv
@@ -14,32 +28,42 @@ python -m pip install -r demos/requirements-demo.txt
 # Try the included sample
 python data_agents_cli.py run --input data/samples/sample_mini.csv --run-id demo --interactive
 
-# Or point to your own file (prompts if header confirmation is needed)
+# Or point to your own file (it will ask if it needs help confirming the header)
 python data_agents_cli.py run --input path\\to\\your.xlsx --run-id demo --interactive
 
-# Or the two-step flow
+# Or run it in two steps: detect, confirm, then continue
 python data_agents_cli.py run --input path\\to\\your.xlsx --run-id demo
 python data_agents_cli.py confirm --run-id demo --choice row_1
 python data_agents_cli.py resume --run-id demo
 ```
 
-Outputs land in `artifacts/<run-id>/`, including `clean.csv`, `schema_spec.json`, and the shadow log. Use your own CSV/XLSX; drop it anywhere and point `--input` to the file. A small sample like `data/samples/sample_messy.xlsx` works if you already have it locally.
+When it finishes, the results are saved in `artifacts/<run-id>/`. You'll find:
 
-## UI options
+- `clean.csv` — the cleaned-up spreadsheet
+- `schema_spec.json` — a description of the columns and their data types
+- a "shadow log" — a step-by-step record of what happened
 
-- TUI: `python demos/tui_app.py --input path\\to\\your.xlsx --interactive`
-- Streamlit demo: `streamlit run demos/streamlit_app.py`
-- Streamlit mapping studio: `streamlit run demos/streamlit_mapping_studio.py`
-- Convenience launchers (Windows): `demos/run_tui_demo.bat`, `demos/run_streamlit_demo.bat`
+Any CSV or Excel file works — just point `--input` at it.
 
-## What this demo does
+## Other ways to use it
 
-- Detects likely header rows and asks for confirmation when ambiguous.
-- Cleans and normalizes column names and data values.
-- Writes reproducible artifacts (schema, evidence packet, shadow log, clean CSV) under `artifacts/`.
-- Designed to plug in alternative UIs without changing the core runtime in `runtime/`.
+- **Terminal app** (a keyboard-driven app inside your terminal window):
+  `python demos/tui_app.py --input path\\to\\your.xlsx --interactive`
+- **Web app** (opens in your browser, built with Streamlit):
+  `streamlit run demos/streamlit_app.py`
+- **Mapping studio** (web app for matching messy column names to clean ones):
+  `streamlit run demos/streamlit_mapping_studio.py`
+- **One-click launchers (Windows):** `demos/run_tui_demo.bat`, `demos/run_streamlit_demo.bat`
 
-## How it works (fast walk-through)
+## What it does, step by step
+
+1. You give it a CSV or Excel file.
+2. It looks at the file and figures out which row is most likely the header (the row with column titles).
+3. If the answer isn't obvious, it pauses and asks you — through whichever interface you're using — to confirm.
+4. Once it knows the header, it cleans up the data: trims stray spaces, normalizes numbers stored as text, handles empty cells consistently.
+5. It writes out the clean file plus a record of every decision it made.
+
+Visually:
 
 ```
 Your CSV/XLSX
@@ -56,21 +80,24 @@ runtime.excel_flow.puhemies_run_from_file
         • shadow.jsonl (trace log)
 ```
 
-Why this is more than “just read Excel”:
-- The pipeline treats header detection as a first-class decision, not a guess hidden inside a parser.
-- Human confirmations are recorded, so runs are reproducible and auditable.
-- UIs are thin shells; the orchestration and janitor live in `runtime/`, so you can swap interfaces without touching the core.
-- Artifacts are structured (JSON + CSV) for downstream pipelines, not screenshots or ad-hoc prints.
+## Why this is more than "just read the file"
 
-## Under the hood (where to look)
+- **Header detection is treated as a real decision**, not something quietly guessed inside a parser. Mistakes here cause silent damage to data pipelines downstream.
+- **Human confirmations are saved**, so a run can be replayed exactly the same way later — important for compliance and debugging.
+- **The interfaces are intentionally thin.** The real work happens in the `runtime/` folder, so a new UI (or a fully automated agent) can plug in without changing the cleanup logic.
+- **Outputs are structured** (JSON for metadata, CSV for data), so the next system in the chain can read them programmatically — no screenshots or copy-paste.
 
-- Orchestration: `runtime/excel_flow.py` — `puhemies_run_from_file` (initial detection), `puhemies_continue` (after confirmation), `_write_json` and `_append_shadow` (artifact + audit log writers).
-- Header detection: `_normalize_header`, `_header_looks_like_data`, and candidate generation inside `excel_flow.py`; scores candidates, marks ambiguous cases, and serializes to `header_spec.json`.
-- Human-in-the-loop: `data_agents_cli.py` (CLI), `demos/tui_app.py` (text UI), `demos/streamlit_app.py` & `demos/streamlit_mapping_studio.py` (web UI). All simply surface the same `header_spec.json` question and call `write_human_confirmation`.
-- Data cleaning: `runtime/data_janitor.py` — `clean_value`, `clean_series` for stripping whitespace, normalizing numeric-ish strings, and handling nulls before writing `clean.csv`.
-- Schema + evidence: `schema_spec.json` and `evidence_packet.json` come from the run; they capture normalized headers, confidence scores, and decisions so you can replay/debug.
+## Where to look in the code
 
-### UI → runtime → artifacts (code map)
+A guided tour for engineers reviewing the project:
+
+- **Orchestration** (the conductor that runs the steps in order): `runtime/excel_flow.py` — see `puhemies_run_from_file` (first pass), `puhemies_continue` (after the user confirms), and `_write_json` / `_append_shadow` (which save artifacts and audit logs).
+- **Header detection** (figuring out which row is the column titles): `_normalize_header`, `_header_looks_like_data`, and the candidate-generation logic inside `excel_flow.py`. It scores possible header rows, flags ambiguous cases, and writes the result to `header_spec.json`.
+- **Human-in-the-loop** (the part where the tool asks for help): `data_agents_cli.py` (command line), `demos/tui_app.py` (terminal app), and `demos/streamlit_app.py` & `demos/streamlit_mapping_studio.py` (web apps). Each one shows the same question from `header_spec.json` and calls `write_human_confirmation` once the user answers.
+- **Data cleaning**: `runtime/data_janitor.py` — `clean_value` and `clean_series` strip whitespace, normalize number-like text, and handle empty cells before writing `clean.csv`.
+- **Schema and evidence**: `schema_spec.json` and `evidence_packet.json` capture the cleaned-up column names, confidence scores, and decisions, so the run can be replayed or debugged.
+
+### How a request flows through the system
 
 ```
 CLI/TUI/Streamlit
@@ -85,26 +112,26 @@ runtime.excel_flow.puhemies_run_from_file
    └─ _write_json              → evidence_packet.json, save_manifest.json
 ```
 
-## Agent philosophy (why it works this way)
+## Design principles
 
-- Decisions are explicit: the orchestrator asks for human confirmation when header confidence is low, then records that choice in artifacts so runs are reproducible.
-- Separation of concerns: runtime logic lives in `runtime/` (detection, cleaning, orchestration) while UIs (CLI/TUI/Streamlit) are thin shells that just prompt and display.
-- Traceability by default: every step writes to `shadow.jsonl` and structured specs so you can audit or replay without hidden state.
-- Extensible roles: canonical agent/skill definitions live under `agent-base/` (mirrored in `.github/`) if you want to plug this into a larger multi-agent workflow.
+- **Be explicit about decisions.** When confidence is low, ask the human and write the answer down. No silent guesses.
+- **Keep concerns separate.** Logic lives in `runtime/`. Interfaces are simple shells that prompt and display.
+- **Traceability by default.** Every step is logged to `shadow.jsonl` and to structured spec files, so nothing is hidden.
+- **Extensible.** Reusable agent and skill definitions live under `agent-base/` (also mirrored in `.github/`), so this can be dropped into a larger AI-agent workflow.
 
-## Repo layout
+## What's in this repo
 
-- `data_agents_cli.py` / `data-agents.ps1` — CLI entrypoint and PowerShell wrapper.
-- `runtime/` — header detection, janitor, and orchestration logic.
-- `demos/` — TUI and Streamlit front-ends plus demo requirements.
-- `tests/` — basic flow coverage.
+- `data_agents_cli.py` / `data-agents.ps1` — the command-line entry points (Python script and a PowerShell wrapper).
+- `runtime/` — the core logic: header detection, cleaning, and orchestration.
+- `demos/` — the terminal app, the web apps, and the dependencies they need.
+- `tests/` — basic automated tests covering the main flow.
 - `agent-base/` and `.github/` — shared agent definitions and templates.
 
 ## Example output
 
-- Clean CSV from the bundled sample: `docs/example-output/sample_mini_clean.csv`
+- A cleaned CSV produced from the bundled sample: `docs/example-output/sample_mini_clean.csv`
 
 ## Links
 
 - Profile: https://github.com/Alleyfoo
-- Related: https://github.com/Alleyfoo/Data-tool-demo
+- Related project: https://github.com/Alleyfoo/Data-tool-demo
